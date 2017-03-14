@@ -97,11 +97,25 @@ fn intersect_ray_tri(math: Intrinsics, ray: Ray, tri: Tri, tmin: float, tmax: fl
 
 fn intersect_ray_box(math: RayBoxIntrinsics, ray: Ray, bbox: BBox, tmin: float, tmax: float, intr: fn (float, float) -> ()) -> () @{
     let (inv_dir, inv_org) = (ray.inv_dir(), ray.inv_org());
-    let t0 = vec3_sub(vec3_mul(inv_dir, bbox.min()), inv_org);
-    let t1 = vec3_sub(vec3_mul(inv_dir, bbox.max()), inv_org);
+    let t0 = vec3_sub(vec3_mul(inv_dir, @bbox.min()), inv_org);
+    let t1 = vec3_sub(vec3_mul(inv_dir, @bbox.max()), inv_org);
 
     let tentry = math.fmaxmaxf(math.fminf(t0.x, t1.x), math.fminf(t0.y, t1.y), math.fminmaxf(t0.z, t1.z, tmin));
     let texit  = math.fminminf(math.fmaxf(t0.x, t1.x), math.fmaxf(t0.y, t1.y), math.fmaxminf(t0.z, t1.z, tmax));
+
+    /*let (min, max) = (bbox.min(), bbox.max());
+
+    let t0_x = inv_dir.x * min.x - inv_org.x;
+    let t0_y = inv_dir.y * min.y - inv_org.y;
+    let t0_z = inv_dir.z * min.z - inv_org.z;
+    let t1_x = inv_dir.x * max.x - inv_org.x;
+    let t1_y = inv_dir.y * max.y - inv_org.y;
+    let t1_z = inv_dir.z * max.z - inv_org.z;
+
+
+
+    let tentry = math.fmaxmaxf(math.fminf(t0_x, t1_x), math.fminf(t0_y, t1_y), math.fminmaxf(t0_z, t1_z, tmin));
+    let texit  = math.fminminf(math.fmaxf(t0_x, t1_x), math.fmaxf(t0_y, t1_y), math.fmaxminf(t0_z, t1_z, tmax));*/
 
     if tentry <= texit @{ intr(tentry, texit) }
 }
