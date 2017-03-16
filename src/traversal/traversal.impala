@@ -77,11 +77,11 @@ fn traverse_bvh(mapping: TraversalMapping, stack: Stack, ray: Ray, tmin: float, 
         }
 
         // Process leaves
-        while $mapping.is_leaf(stack.top()) @{
+        while $mapping.is_leaf(stack.top()) {
             let leaf = stack.top();
 
             // Process primitives, if any
-            for prim in @mapping.iterate_primitives(leaf, t) {
+            for prim in mapping.iterate_primitives(leaf, t) @{
                 with hit in prim.intersect(mapping.intrinsics, ray, tmin, t) {
                     if !@mapping.transparency(prim.id(), hit) {
                         prim_id = prim.id();
@@ -95,7 +95,7 @@ fn traverse_bvh(mapping: TraversalMapping, stack: Stack, ray: Ray, tmin: float, 
             }
 
             // Process instances, if any
-            for inst in @mapping.iterate_instances(leaf, t) {
+            for inst in mapping.iterate_instances(leaf, t) {
                 let new_dir = mat3x4_mul(inst.inverse(), vec3_to_4(ray.dir(), 0.0f));
                 let new_org = mat3x4_mul(inst.inverse(), vec3_to_4(ray.org(), 0.0f));
                 let result = inst.traverse(make_ray(new_org, new_dir), tmin, t);

@@ -58,7 +58,7 @@ fn gpu_traverse_bvh2(bvh: &Bvh2, rays: RayStream, hits: HitStream, ray_count: in
 
         let mapping = TraversalMapping {
             iterate_children: |node_ref, tmax, stack, body, exit| -> ! {
-                let node_ptr = &nodes(node_ref.node) as &[1][simd[float * 4]];
+                /*let node_ptr = &nodes(node_ref.node) as &[1][simd[float * 4]];
                 let bb0 = nvvm_ldg4_f32(&node_ptr(0));
                 let bb1 = nvvm_ldg4_f32(&node_ptr(1));
                 let bb2 = nvvm_ldg4_f32(&node_ptr(2));
@@ -91,11 +91,12 @@ fn gpu_traverse_bvh2(bvh: &Bvh2, rays: RayStream, hits: HitStream, ray_count: in
                     } else {
                         stack.set_top(if hit1 { children(0) } else { children(1) }, 0.0f)
                     }
-                }
+                }*/
             },
             iterate_primitives: |leaf_ref, tmax, body, exit| -> ! {
                 let mut tri_id = !leaf_ref.node;
                 while true {
+                    pe_info("ouch", tri_id);
                     let tri_ptr = &tris(tri_id) as &[1][simd[float * 4]];
                     let tri0 = nvvm_ldg4_f32(&tri_ptr(0));
                     let tri1 = nvvm_ldg4_f32(&tri_ptr(1));

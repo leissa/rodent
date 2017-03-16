@@ -89,13 +89,13 @@ fn cpu_traverse_bvh4_packet(bvh: &Bvh4, rays: RayStream, hits: HitStream, ray_co
                     if all(leaf_ref.tmin > tmax) { exit() }
 
                     let mut tri_id = !leaf_ref.node;
-                    while true @{
+                    /*while true @{
                         let tri = bvh.tris(tri_id++);
                         for k in @range(0, 4) {
                             @body(make_primitive(ray_tri_intersector(load_bvh4_tri(tri, k)), tri.id(k) & 0x7FFFFFFF));
                         }
                         if (tri.id(3) & bitcast[i32](0x80000000u)) != 0 { break() }
-                    }
+                    }*/
                 },
                 iterate_instances: |_, _, _| {},
                 hit_callback: |hit, continue, terminate| -> !
