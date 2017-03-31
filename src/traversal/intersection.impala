@@ -80,7 +80,7 @@ fn intersect_ray_tri(math: Intrinsics, ray: Ray, tri: Tri, tmin: float, tmax: fl
     let c = vec3_sub(tri.v0(), org);
     let r = vec3_cross(dir, c);
     let det = vec3_dot(n, dir);
-    let abs_det = math.fabsf(det);
+    let abs_det = bitcast[f32](bitcast[u32](det) & 0x7FFFFFFFu);
 
     let u = prodsign(vec3_dot(r, tri.e2()), det);
     let v = prodsign(vec3_dot(r, tri.e1()), det);

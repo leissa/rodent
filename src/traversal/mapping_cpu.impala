@@ -110,7 +110,7 @@ fn cpu_traverse_bvh4_packet(bvh: &Bvh4, rays: RayStream, hits: HitStream, ray_co
         }
     }
 }
-
+/*
 fn cpu_traverse_bvh4_single(bvh: &Bvh4, rays: RayStream, hits: HitStream, ray_count: int, any_hit: bool) -> () {
     for i in range(0, ray_count) {
         let (ray, tmin, tmax) = rays(i);
@@ -180,4 +180,4 @@ fn cpu_traverse_bvh4_single(bvh: &Bvh4, rays: RayStream, hits: HitStream, ray_co
             hits(i, @traverse_bvh(mapping, stack, ray, tmin, tmax));
         }
     }
-}
+}*/
