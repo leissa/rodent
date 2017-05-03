@@ -1,16 +1,16 @@
 // Structure containing the mapping of the traversal algorithm
 // for a particular device and/or use case.
 struct TraversalMapping {
-    intrinsics:         Intrinsics,
-    ray_box_intrinsics: RayBoxIntrinsics,
+    /*intrinsics:         Intrinsics,
+    ray_box_intrinsics: RayBoxIntrinsics,*/
 
     iterate_children:   fn (NodeRef, float, Stack, fn (BBox, fn (float, float) -> ()) -> ()) -> (),
-    iterate_primitives: fn (NodeRef, float, fn (Primitive) -> ()) -> (),
+    /*iterate_primitives: fn (NodeRef, float, fn (Primitive) -> ()) -> (),
     iterate_instances:  fn (NodeRef, float, fn (Instance) -> ()) -> (),
 
     hit_callback: fn (Hit, fn () -> !, fn (Hit) -> !) -> !,
     transparency: fn (int, Intersection) -> bool,
-    is_leaf:      fn (NodeRef) -> bool
+    is_leaf:      fn (NodeRef) -> bool*/
 }
 
 // Result of a call to the traversal algorithm
@@ -30,10 +30,10 @@ struct Instance {
 }
 
 fn traverse_bvh(mapping: TraversalMapping, stack: Stack, ray: Ray, tmin: float, tmax: float) -> Hit @{
-    let mut inst_id = -1;
-    let mut prim_id = -1;
-    let mut t = tmax;
-    let mut uv = make_vec2(0.0f, 0.0f);
+    let inst_id = -1;
+    let prim_id = -1;
+    let t = tmax;
+    let uv = make_vec2(0.0f, 0.0f);
 
     let make_hit = || {
         Hit {
@@ -52,11 +52,11 @@ fn traverse_bvh(mapping: TraversalMapping, stack: Stack, ray: Ray, tmin: float, 
 
         // Intersect the bounding box of every child of this node
         for bbox, hit in mapping.iterate_children(node, t, stack) @{
-            intersect_ray_box(mapping.ray_box_intrinsics, ray, bbox, tmin, t, hit);
+            //intersect_ray_box(mapping.ray_box_intrinsics, ray, bbox, tmin, t, hit);
         }
 
         // Process leaves
-        while $mapping.is_leaf(stack.top()) @{
+        /*while $mapping.is_leaf(stack.top()) @{
             let leaf = stack.top();
 
             // Process primitives, if any
@@ -86,7 +86,7 @@ fn traverse_bvh(mapping: TraversalMapping, stack: Stack, ray: Ray, tmin: float, 
             }
 
             stack.pop()
-        }
+        }*/
     }
 
     return(make_hit())

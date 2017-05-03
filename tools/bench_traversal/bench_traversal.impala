@@ -5,11 +5,11 @@ extern fn frontend_cpu_traverse_bvh4(bvh: &Bvh4, rays: &[Ray8SoA], hits: &mut [H
         @cpu_traverse_bvh4_packet(bvh, make_cpu_ray8_layout(rays, hits), ray_count, false);
     //}
 }
-
+/*
 extern fn frontend_gpu_traverse_bvh2(bvh: &Bvh2, rays: &[Ray1AoS], hits: &mut [Hit1AoS], ray_count: int, any_hit: bool) -> () {
     if any_hit {
         @gpu_traverse_bvh2(bvh, make_gpu_ray_layout(rays, hits), ray_count, true);
     } else {
         @gpu_traverse_bvh2(bvh, make_gpu_ray_layout(rays, hits), ray_count, false);
     }
-}
+}*/

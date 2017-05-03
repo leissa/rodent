@@ -57,7 +57,7 @@ fn make_gpu_ray_layout(rays: &[Ray1AoS], hits: &mut[Hit1AoS]) -> RayLayout {
         }
     }
 }
-
+/*
 fn gpu_traverse_bvh2(bvh: &Bvh2, ray_layout: RayLayout, ray_count: int, any_hit: bool) -> () {
     let (nodes, tris) = (bvh.nodes, bvh.tris);
 
@@ -143,4 +143,4 @@ fn gpu_traverse_bvh2(bvh: &Bvh2, ray_layout: RayLayout, ray_count: int, any_hit:
 
         ray_layout.output(i, j, @traverse_bvh(mapping, stack, ray, tmin, tmax))
     }
-}
+}*/

@@ -122,56 +122,21 @@ fn cpu_traverse_bvh4_packet(bvh: &Bvh4, ray_layout: RayLayout, ray_count: int, a
                 iterate_children: |node_ref, tmax, stack, body, exit| -> ! @{
                     stack.pop();
 
-                    if all(node_ref.tmin > tmax) { exit() }
-
                     let node = &bvh.nodes(node_ref.node);
                     for k in @unroll(0, 4) @{
                         pe_info("child", k);
                         if node.child(k) == 0 { break() }
-
-                        let bbox = make_bbox(make_vec3(node.min(0)(k), node.min(1)(k), node.min(2)(k)),
-                                             make_vec3(node.max(0)(k), node.max(1)(k), node.max(2)(k)));
-                        let intersect_child = |box| -> (bool, float) {
-                            @body(box, |tentry, _, _| -> ! { return(true, tentry) });
-                            (false, 0.0f)
-                        };
-                        let (hit, tentry) = @intersect_child(bbox);
-
-                        if any(hit) {
-                            if any(stack.top().tmin > tentry) {
-                                stack.push(node.child(k), tentry);
-                            } else {
-                                stack.push_after(node.child(k), tentry);
-                            }
-                        }
+                        let (hit, tentry) = (node.min(0)(k) > 0.0f, node.min(1)(k));
+                        if any(hit) { stack.push(node.child(k), tentry); }
                     }
                 },
-                iterate_primitives: |leaf_ref, tmax, body, exit| -> ! @{
-                    if all(leaf_ref.tmin > tmax) { exit() }
-
-                    let mut tri_id = !leaf_ref.node;
-                    while true @{
-                        let tri = &bvh.tris(tri_id++);
-                        for k in @unroll(0, 4) {
-                            @body(make_primitive(make_ray_tri_intersector(load_bvh4_tri(tri, k)), tri.id(k) & 0x7FFFFFFF));
-                        }
-                        if (tri.id(3) & bitcast[i32](0x80000000u)) != 0 { break() }
-                    }
-                },
-                iterate_instances: |_, _, _| {},
-                hit_callback: |hit, continue, terminate| -> !
-                    if any_hit && all(hit.prim_id >= 0) { @terminate(hit) } else { continue() },
-                transparency: |_, _| false,
-                is_leaf: |node_ref| node_ref.node < 0,
-                intrinsics: cpu_intrinsics,
-                ray_box_intrinsics: make_ray_box_intrinsics_avx2()
             };
 
-            ray_layout.output(i, j, @traverse_bvh(mapping, stack, ray, tmin, tmax));
+            @ray_layout.output(i, j, @traverse_bvh(mapping, stack, ray, tmin, tmax));
         }
     }
 }
-
+/*
 fn cpu_traverse_bvh4_single(bvh: &Bvh4, ray_layout: RayLayout, ray_count: int, any_hit: bool) -> () {
     let inc = ray_layout.increment();
     for i in $range_step(0, ray_count, inc) @{
@@ -225,26 +190,6 @@ fn cpu_traverse_bvh4_single(bvh: &Bvh4, ray_layout: RayLayout, ray_count: int, a
                         let mut tri_id = !leaf_ref.node;
                         while true {
                             let tri = &bvh.tris(tri_id++);
-                            /*let closest_intr = |math, ray, tmin, tmax, intr| {
-                                let mut found = false;
-                                let mut t  = flt_max;
-                                let mut n  = vec3(0.0f, 0.0f, 0.0f);
-                                let mut uv = vec2(0.0f, 0.0f);
-
-                                make_ray_tri_intersector(load_bvh4_tri(tri, j))
-                                    (math, ray, tmin, tmax, |hit| {
-                                        n  = hit.normal();
-                                        uv = hit.uv();
-                                        t  = hit.distance();
-                                        found = true;
-                                    });
-
-                                if any(found) {
-                                    let mut id = 0;
-                                    if extractf(t, 1) < extractf(t, 0) { id = 1; }
-                                    if extractf(t, 2) < extractf(t, 3) { id = 2; }
-                                }
-                            };*/
                             // TODO: Select the closest ray-triangle intersection within the intersector
                             @body(make_primitive(make_ray_tri_intersector(load_bvh4_tri(tri, k)), tri.id(k) & 0x7FFFFFFF));
                             if (tri.id(3) & bitcast[i32](0x80000000u)) != 0 { break() }
@@ -263,4 +208,4 @@ fn cpu_traverse_bvh4_single(bvh: &Bvh4, ray_layout: RayLayout, ray_count: int, a
             }
         }
     }
-}
+}*/
