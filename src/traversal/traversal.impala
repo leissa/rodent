@@ -60,7 +60,7 @@ fn traverse_bvh(mapping: TraversalMapping, stack: Stack, ray: Ray, tmin: float, 
             let leaf = stack.top();
 
             // Process primitives, if any
-            for prim in @mapping.iterate_primitives(leaf, t) {
+            for prim in @mapping.iterate_primitives(leaf, t) @{
                 with intr in prim.intersect(mapping.intrinsics, ray, tmin, t) {
                     if !@mapping.transparency(prim.id, intr) {
                         prim_id = prim.id;

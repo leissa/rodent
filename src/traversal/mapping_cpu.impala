@@ -127,7 +127,8 @@ fn cpu_traverse_bvh4_packet(bvh: &Bvh4, ray_layout: RayLayout, ray_count: int, a
                     let node = &bvh.nodes(node_ref.node);
                     for k in @unroll(0, 4) @{
                         pe_info("child", k);
-                        if node.child(k) == 0 { break() }
+                        let child_id = node.child(k);
+                        if child_id == 0 { break() }
 
                         let bbox = @make_bbox(make_vec3(node.min(0)(k), node.min(1)(k), node.min(2)(k)),
                                               make_vec3(node.max(0)(k), node.max(1)(k), node.max(2)(k)));
@@ -137,17 +138,17 @@ fn cpu_traverse_bvh4_packet(bvh: &Bvh4, ray_layout: RayLayout, ray_count: int, a
                         };
                         let (hit, tentry) = @intersect_child(bbox);
 
-                        if any(hit) {
-                            if any(stack.top().tmin > tentry) {
-                                stack.push(node.child(k), tentry);
-                            } else {
-                                stack.push_after(node.child(k), tentry);
+                        /*if any(hit) {
+                            if any(stack.top().tmin > tentry) {*/
+                                @stack.push(child_id, tentry);
+                        /*    } else {
+                                @stack.push_after(child_id, tentry);
                             }
-                        }
+                        }*/
                     }
                 },
                 iterate_primitives: |leaf_ref, tmax, body, exit| -> ! @{
-                    if all(leaf_ref.tmin > tmax) { exit() }
+                    /*if all(leaf_ref.tmin > tmax) { exit() }
 
                     let mut tri_id = !leaf_ref.node;
                     while true @{
@@ -157,7 +158,7 @@ fn cpu_traverse_bvh4_packet(bvh: &Bvh4, ray_layout: RayLayout, ray_count: int, a
                             body(make_primitive(make_ray_tri_intersector(load_bvh4_tri(tri, k)), tri.id(k) & 0x7FFFFFFF));
                         }
                         if (tri.id(3) & bitcast[i32](0x80000000u)) != 0 { break() }
-                    }
+                    }*/
                 },
                 iterate_instances: |_, _, _| {},
                 hit_callback: |hit, continue, terminate| -> !
