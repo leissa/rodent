@@ -415,7 +415,7 @@ fn make_cpu_hybrid_mapping(ray_box_intrinsics: RayBoxIntrinsics, config: Travers
                     }
                 }
             } else {
-                packet_mapping.iterate_children(stack, ray, res_ptr, body)
+                @packet_mapping.iterate_children(stack, ray, res_ptr, body)
             }
         },
         iterate_primitives: packet_mapping.iterate_primitives,
