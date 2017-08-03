@@ -51,9 +51,9 @@ fn reduce(value: float, n: int, op: fn (float, float) -> float) -> float {
     }
 }
 
-// Returns the first vector lane index i for which value[i] == lane
-fn index_of(value: float, lane: float) -> int {
-    cpu_ctz32(ballot(value == lane), true)
+// Returns the first vector lane index i for which the mask is true
+fn index_of(mask: bool) -> int {
+    cpu_ctz32(ballot(mask), true)
 }
 
 // Lane extraction from vectorized structures
@@ -306,7 +306,7 @@ fn make_cpu_single_mapping(ray_box_intrinsics: RayBoxIntrinsics, config: Travers
                 if likely(mask == 0) { continue() }
 
                 // Push intersected nodes on the stack
-                let mut n = 0;
+                let mut n_hits = 0;
                 for bit in one_bits(mask) {
                     let child_id = node.child(bit);
                     if unlikely(child_id == 0) { break() }
@@ -315,15 +315,15 @@ fn make_cpu_single_mapping(ray_box_intrinsics: RayBoxIntrinsics, config: Travers
 
                     let t = extract(tentry, bit);
                     @stack.push(child_id, t);
-                    n++;
+                    n_hits++;
                 }
 
                 // Sort them
-                if !config.any_hit && n >= 2 @{
+                if !config.any_hit && n_hits >= 2 @{
                     stack.push(stack.top().node, stack.top().tmin);
                     // Generate a specialized sorting network for lengths [2..bvh.arity] (included)
                     for i in @unroll(2, bvh.arity + 1) {
-                        if i == bvh.arity || n == i @{
+                        if i == bvh.arity || n_hits == i @{
                             stack.sort_n(i);
                             break()
                         }
@@ -349,7 +349,7 @@ fn make_cpu_single_mapping(ray_box_intrinsics: RayBoxIntrinsics, config: Travers
                         // Find the closest intersection
                         if any(found) {
                             let min_t = @reduce(t, vector_width, ray_box_intrinsics.fminf);
-                            let lane = index_of(t, min_t);
+                            let lane = index_of(t == min_t);
                             @intr(make_hit(
                                 -1,
                                 tri.id(i + lane) & 0x7FFFFFFF,
@@ -404,6 +404,7 @@ fn make_cpu_hybrid_mapping(ray_box_intrinsics: RayBoxIntrinsics, config: Travers
 
             // Intersect the node with the packet of rays
             let node = bvh.node(node_ref.node - 1);
+            let mut n_hits = 0;
             for k in @unroll(0, bvh.arity) @{
                 let child_id = node.child(k);
                 if unlikely(child_id == 0) { break() }
@@ -411,6 +412,7 @@ fn make_cpu_hybrid_mapping(ray_box_intrinsics: RayBoxIntrinsics, config: Travers
                 let (hit, tentry, _) = @body(node.bbox(k, -1));
 
                 if any(hit) {
+                    n_hits++;
                     if config.any_hit || any(stack.top().tmin > tentry) {
                         @stack.push(child_id, tentry);
                     } else {
@@ -418,6 +420,20 @@ fn make_cpu_hybrid_mapping(ray_box_intrinsics: RayBoxIntrinsics, config: Travers
                     }
                 }
             }
+
+            if !config.any_hit && n_hits >= 2 @{
+                // Sort (up to) 3 intersections
+                let sort_max = 3;
+
+                // Generate specialized sorting networks
+                for i in @unroll(2, sort_max) {
+                    if n_hits == i @{
+                        stack.sort_n(i);
+                        break()
+                    }
+                }
+            }
+
             exit()
         },
         iterate_primitives: |leaf_ref, ray, body, exit| -> ! @{
